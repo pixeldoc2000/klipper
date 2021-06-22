@@ -360,6 +360,32 @@ micro-controller.
 | 1 stepper (no delay) | 42    |
 | 3 stepper (no delay) | 194   |
 
+### RP2040 step rate benchmark ###
+
+The following configuration sequence is used on the RP2040:
+
+```
+allocate_oids count=4
+config_stepper oid=0 step_pin=gpio25 dir_pin=gpio3 invert_step=0
+config_stepper oid=1 step_pin=gpio26 dir_pin=gpio4 invert_step=0
+config_stepper oid=2 step_pin=gpio27 dir_pin=gpio5 invert_step=0
+config_stepper oid=3 step_pin=gpio28 dir_pin=gpio6 invert_step=0
+finalize_config crc=0
+```
+
+The test was last run on commit `800ce848` with gcc version
+`arm-none-eabi-gcc (Fedora 10.2.0-4.fc34) 10.2.0` on a Raspberry Pi
+Pico board.
+
+| rp2040               | ticks |
+| -------------------- | ----- |
+| 1 stepper            | 52    |
+| 2 stepper            | 52    |
+| 3 stepper            | 52    |
+| 4 stepper            | 66    |
+| 1 stepper (no delay) | 5     |
+| 3 stepper (no delay) | 22    |
+
 ### Linux MCU step rate benchmark ###
 
 The following configuration sequence is used on a Raspberry Pi:
