@@ -42,6 +42,7 @@ DECL_INIT(watchdog_init);
  ****************************************************************/
 
 #define FREQ_SYS 125000000
+#define FREQ_USB 48000000
 
 uint32_t
 get_pclock_frequency(void)
@@ -56,6 +57,12 @@ unreset(uint32_t reset_bit)
     resets_hw->reset &= ~reset_bit;
     while (!(resets_hw->reset_done & reset_bit))
         ;
+}
+
+int
+is_in_reset(uint32_t reset_bit)
+{
+    return resets_hw->reset & reset_bit;
 }
 
 static void
@@ -86,6 +93,14 @@ pll_setup(pll_hw_t *pll, uint32_t mul, uint32_t postdiv)
 }
 
 static void
+clk_aux_setup(uint32_t clk_id, uint32_t aux_id)
+{
+    clock_hw_t *clk = &clocks_hw->clk[clk_id];
+    clk->ctrl = 0;
+    clk->ctrl = aux_id | CLOCKS_CLK_PERI_CTRL_ENABLE_BITS;
+}
+
+static void
 clock_setup(void)
 {
     // Set clk_sys and clk_ref to use internal clock
@@ -112,12 +127,13 @@ clock_setup(void)
     while (!(csys->selected & (1 << 1)))
         ;
 
-    // Setup clk_peri
-    clock_hw_t *cperi = &clocks_hw->clk[clk_peri];
-    cperi->ctrl = 0;
-    cperi->ctrl = CLOCKS_CLK_PERI_CTRL_ENABLE_BITS;
-    while (!(cperi->selected & (1 << 0)))
-        ;
+    // Setup pll_usb
+    unreset(RESETS_RESET_PLL_USB_BITS);
+    pll_setup(pll_usb_hw, 40, 40*CONFIG_CLOCK_REF_FREQ/FREQ_USB);
+
+    // Setup clk_peri and clk_adc
+    clk_aux_setup(clk_peri, CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLK_SYS);
+    clk_aux_setup(clk_adc, CLOCKS_CLK_ADC_CTRL_AUXSRC_VALUE_CLKSRC_PLL_USB);
 
     // Enable watchdog tick (at 12Mhz)
     cref->div = 1<<CLOCKS_CLK_REF_DIV_INT_LSB;

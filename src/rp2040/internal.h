@@ -7,5 +7,6 @@
 uint32_t get_pclock_frequency(void);
 void gpio_peripheral(uint32_t gpio, int func, int pull_up);
 void unreset(uint32_t reset_bit);
+int is_in_reset(uint32_t reset_bit);
 
 #endif // internal.h
